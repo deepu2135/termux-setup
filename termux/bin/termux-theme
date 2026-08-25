@@ -33,12 +33,14 @@ apply_theme() {
     cp "$theme_file" "$HOST_COLOR_FILE" 2>/dev/null || true
   fi
 
-  if command -v termux-reload-settings &>/dev/null; then
-    timeout 0.5 termux-reload-settings 2>/dev/null || true
+  # Trigger live Android Termux reload broadcast
+  if [ -x /system/bin/am ]; then
+    /system/bin/am broadcast --user 0 -a "com.termux.app.reload_style" "com.termux" >/dev/null 2>&1 || true
+  elif command -v termux-reload-settings &>/dev/null; then
+    termux-reload-settings >/dev/null 2>&1 || true
   fi
 
   echo -e "${GREEN}✔ Successfully applied theme:${RESET} ${BOLD}${CYAN}${theme_name}${RESET}"
-  echo -e "${GRAY}(Note: On Termux, restart session or run 'termux-reload-settings' to see changes live)${RESET}"
 }
 
 list_themes() {
