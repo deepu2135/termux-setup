@@ -39,10 +39,10 @@ elif command -v apt-get &>/dev/null; then
   info "Debian/Ubuntu/PRoot environment detected (using apt)..."
   if [ "$(id -u)" -eq 0 ]; then
     DEBIAN_FRONTEND=noninteractive apt-get update -y
-    DEBIAN_FRONTEND=noninteractive apt-get install -y zsh starship fastfetch fzf bat eza zoxide zsh-autosuggestions zsh-syntax-highlighting git curl fonts-jetbrains-mono
+    DEBIAN_FRONTEND=noninteractive apt-get install -y locales zsh starship fastfetch fzf bat eza zoxide zsh-autosuggestions zsh-syntax-highlighting git curl fonts-jetbrains-mono
   else
     sudo apt-get update -y
-    sudo apt-get install -y zsh starship fastfetch fzf bat eza zoxide zsh-autosuggestions zsh-syntax-highlighting git curl fonts-jetbrains-mono
+    sudo apt-get install -y locales zsh starship fastfetch fzf bat eza zoxide zsh-autosuggestions zsh-syntax-highlighting git curl fonts-jetbrains-mono
   fi
 else
   warn "Unknown package manager. Please ensure starship, fastfetch, zsh, fzf, bat, eza, and zoxide are installed."
