@@ -1,3 +1,4 @@
+[ -x "$HOME/.termux/bin/apply-active-palette" ] && "$HOME/.termux/bin/apply-active-palette" 2>/dev/null
 # ~/.bashrc: executed by bash(1) for non-login shells.
 
 # Auto-start Zsh if running interactively

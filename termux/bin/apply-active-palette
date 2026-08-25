@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+COLOR_FILE="${1:-$HOME/.termux/colors.properties}"
+if [ -f "$COLOR_FILE" ]; then
+    bg=$(grep "^background=" "$COLOR_FILE" | cut -d= -f2 | tr -d ' \r\n')
+    fg=$(grep "^foreground=" "$COLOR_FILE" | cut -d= -f2 | tr -d ' \r\n')
+    cur=$(grep "^cursor=" "$COLOR_FILE" | cut -d= -f2 | tr -d ' \r\n')
+    [ -n "$fg" ]  && printf "\033]10;%s\007" "$fg"
+    [ -n "$bg" ]  && printf "\033]11;%s\007" "$bg"
+    [ -n "$cur" ] && printf "\033]12;%s\007" "$cur"
+    for i in {0..15}; do
+        c=$(grep "^color$i=" "$COLOR_FILE" | cut -d= -f2 | tr -d ' \r\n')
+        [ -n "$c" ] && printf "\033]4;%d;%s\007" "$i" "$c"
+    done
+fi

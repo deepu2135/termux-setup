@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-#  Termux Theme Switcher — Aesthetic & Modern
+#  Dynamic Terminal Theme Switcher — Instant Live Repaint
 # ============================================================
 
 THEME_DIR="/root/.termux/colors"
@@ -14,8 +14,6 @@ CYAN="\033[38;5;51m"
 GREEN="\033[38;5;46m"
 YELLOW="\033[38;5;226m"
 MAGENTA="\033[38;5;201m"
-GRAY="\033[38;5;242m"
-WHITE="\033[38;5;255m"
 
 apply_theme() {
   local theme_file="$1"
@@ -26,6 +24,23 @@ apply_theme() {
     exit 1
   fi
 
+  # 1. Live Dynamic OSC Terminal Palette Repaint
+  if [ -t 1 ] || [ -n "$TTY" ] || [ -n "$TERM" ]; then
+    bg=$(grep "^background=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+    fg=$(grep "^foreground=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+    cur=$(grep "^cursor=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+
+    [ -n "$fg" ]  && printf "\033]10;%s\007" "$fg"
+    [ -n "$bg" ]  && printf "\033]11;%s\007" "$bg"
+    [ -n "$cur" ] && printf "\033]12;%s\007" "$cur"
+
+    for i in {0..15}; do
+      c=$(grep "^color$i=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+      [ -n "$c" ] && printf "\033]4;%d;%s\007" "$i" "$c"
+    done
+  fi
+
+  # 2. Persist to Termux properties
   mkdir -p "/root/.termux"
   cp "$theme_file" "$PRIMARY_COLOR_FILE"
 
@@ -33,14 +48,14 @@ apply_theme() {
     cp "$theme_file" "$HOST_COLOR_FILE" 2>/dev/null || true
   fi
 
-  # Trigger live Android Termux reload broadcast
+  # 3. Android Termux Reload Broadcast
   if [ -x /system/bin/am ]; then
     /system/bin/am broadcast --user 0 -a "com.termux.app.reload_style" "com.termux" >/dev/null 2>&1 || true
   elif command -v termux-reload-settings &>/dev/null; then
     termux-reload-settings >/dev/null 2>&1 || true
   fi
 
-  echo -e "${GREEN}✔ Successfully applied theme:${RESET} ${BOLD}${CYAN}${theme_name}${RESET}"
+  echo -e "${GREEN}✔ Applied theme:${RESET} ${BOLD}${CYAN}${theme_name}${RESET}"
 }
 
 list_themes() {
@@ -51,7 +66,6 @@ list_themes() {
     [ -e "$f" ] || continue
     name="$(basename "$f" .properties)"
     
-    # Check active
     if [ -f "$PRIMARY_COLOR_FILE" ] && cmp -s "$f" "$PRIMARY_COLOR_FILE"; then
       echo -e "  ${CYAN}[$(printf '%2d' "$i")]${RESET} ${GREEN}● ${name}${RESET} ${YELLOW}(active)${RESET}"
     else

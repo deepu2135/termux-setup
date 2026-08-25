@@ -1,3 +1,4 @@
+[ -x "$HOME/.termux/bin/apply-active-palette" ] && "$HOME/.termux/bin/apply-active-palette" 2>/dev/null
 # ============================================================
 #  Enhanced Modern Zsh Configuration
 # ============================================================
