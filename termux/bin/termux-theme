@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ============================================================
-#  Dynamic Terminal Theme Switcher — Instant Live Repaint
+#  Full-Stack Theme Switcher — Prompt, Window, & Tools
 # ============================================================
 
 THEME_DIR="/root/.termux/colors"
+STARSHIP_THEME_DIR="/root/.termux/themes"
 PRIMARY_COLOR_FILE="/root/.termux/colors.properties"
 HOST_COLOR_FILE="/data/data/com.termux/files/home/.termux/colors.properties"
 
-# ANSI Colors
 BOLD="\033[1m"
 RESET="\033[0m"
 CYAN="\033[38;5;51m"
@@ -24,38 +24,41 @@ apply_theme() {
     exit 1
   fi
 
-  # 1. Live Dynamic OSC Terminal Palette Repaint
-  if [ -t 1 ] || [ -n "$TTY" ] || [ -n "$TERM" ]; then
-    bg=$(grep "^background=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
-    fg=$(grep "^foreground=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
-    cur=$(grep "^cursor=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
-
-    [ -n "$fg" ]  && printf "\033]10;%s\007" "$fg"
-    [ -n "$bg" ]  && printf "\033]11;%s\007" "$bg"
-    [ -n "$cur" ] && printf "\033]12;%s\007" "$cur"
-
-    for i in {0..15}; do
-      c=$(grep "^color$i=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
-      [ -n "$c" ] && printf "\033]4;%d;%s\007" "$i" "$c"
-    done
+  # 1. Update Starship Prompt to match theme palette
+  if [ -f "$STARSHIP_THEME_DIR/$theme_name.starship.toml" ]; then
+    cp "$STARSHIP_THEME_DIR/$theme_name.starship.toml" "$HOME/.config/starship.toml"
+    cp "$STARSHIP_THEME_DIR/$theme_name.starship.toml" "/home/ubuntu/.config/starship.toml" 2>/dev/null || true
   fi
 
-  # 2. Persist to Termux properties
-  mkdir -p "/root/.termux"
-  cp "$theme_file" "$PRIMARY_COLOR_FILE"
+  # 2. Persist colors.properties to both container and Termux host
+  mkdir -p "$HOME/.termux" "/root/.termux"
+  cp -f "$theme_file" "$PRIMARY_COLOR_FILE"
 
   if [ -d "/data/data/com.termux/files/home/.termux" ]; then
-    cp "$theme_file" "$HOST_COLOR_FILE" 2>/dev/null || true
+    cp -f "$theme_file" "$HOST_COLOR_FILE" 2>/dev/null || true
   fi
 
-  # 3. Android Termux Reload Broadcast
+  # 3. Emit Live OSC Terminal Escape Codes
+  bg=$(grep "^background=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+  fg=$(grep "^foreground=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+  cur=$(grep "^cursor=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+
+  [ -n "$fg" ]  && printf "\033]10;%s\007" "$fg"
+  [ -n "$bg" ]  && printf "\033]11;%s\007" "$bg"
+  [ -n "$cur" ] && printf "\033]12;%s\007" "$cur"
+
+  for i in {0..15}; do
+    c=$(grep "^color$i=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+    [ -n "$c" ] && printf "\033]4;%d;%s\007" "$i" "$c"
+  done
+
+  # 4. Trigger Android Broadcast
   if [ -x /system/bin/am ]; then
     /system/bin/am broadcast --user 0 -a "com.termux.app.reload_style" "com.termux" >/dev/null 2>&1 || true
-  elif command -v termux-reload-settings &>/dev/null; then
-    termux-reload-settings >/dev/null 2>&1 || true
   fi
 
   echo -e "${GREEN}✔ Applied theme:${RESET} ${BOLD}${CYAN}${theme_name}${RESET}"
+  echo -e "${YELLOW}  (Prompt colors, system palette, and terminal style updated!)${RESET}"
 }
 
 list_themes() {
@@ -77,7 +80,6 @@ list_themes() {
   echo ""
 }
 
-# Handle arguments
 if [ -n "$1" ]; then
   if [ "$1" = "list" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ]; then
     list_themes
@@ -103,7 +105,6 @@ if [ -n "$1" ]; then
   fi
 fi
 
-# Interactive menu
 list_themes
 read -p "Select theme number or name (or 'r' for random, 'q' to quit): " choice
 
