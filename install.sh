@@ -1,15 +1,18 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # ============================================================
-#  Termux Setup Installer — by deepu2135
-#  Installs oh-my-zsh, zsh plugins, fzf and dotfiles
+#  Termux & Linux Enhanced Shell Installer — by deepu2135
+#  GitHub: https://github.com/deepu2135/termux-setup
 # ============================================================
 
 set -e
 
-CYAN='\033[0;36m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
+# ANSI Color Output
+BOLD='\033[1m'
+CYAN='\033[38;5;51m'
+GREEN='\033[38;5;46m'
+YELLOW='\033[38;5;226m'
+MAGENTA='\033[38;5;201m'
+RED='\033[38;5;196m'
 RESET='\033[0m'
 
 info()    { echo -e "${CYAN}[INFO]${RESET} $1"; }
@@ -17,63 +20,93 @@ success() { echo -e "${GREEN}[OK]${RESET} $1"; }
 warn()    { echo -e "${YELLOW}[WARN]${RESET} $1"; }
 error()   { echo -e "${RED}[ERR]${RESET} $1"; exit 1; }
 
-echo -e "${CYAN}"
-echo "  ╔══════════════════════════════════════╗"
-echo "  ║     Termux Setup by deepu2135        ║"
-echo "  ╚══════════════════════════════════════╝"
+echo -e "${MAGENTA}${BOLD}"
+echo "  ╔══════════════════════════════════════════════════════╗"
+echo "  ║      Enhanced Terminal Setup by @deepu2135           ║"
+echo "  ╚══════════════════════════════════════════════════════╝"
 echo -e "${RESET}"
 
-# ── 1. Update packages ───────────────────────────────────
-info "Updating packages..."
-pkg update -y && pkg upgrade -y
-
-# ── 2. Install dependencies ──────────────────────────────
-info "Installing zsh, git, curl, fzf, figlet, lolcat..."
-pkg install -y zsh git curl fzf figlet ruby
-gem install lolcat 2>/dev/null || warn "lolcat install failed (optional)"
-
-# ── 3. Install oh-my-zsh ────────────────────────────────
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  info "Installing oh-my-zsh..."
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-else
-  warn "oh-my-zsh already installed, skipping."
-fi
-
-# ── 4. Install zsh-autosuggestions ──────────────────────
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
-  info "Installing zsh-autosuggestions..."
-  git clone https://github.com/zsh-users/zsh-autosuggestions \
-    "$HOME/.oh-my-zsh/plugins/zsh-autosuggestions"
-else
-  warn "zsh-autosuggestions already installed, skipping."
-fi
-
-# ── 5. Install zsh-syntax-highlighting ──────────────────
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-  info "Installing zsh-syntax-highlighting..."
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting \
-    "$HOME/.oh-my-zsh/plugins/zsh-syntax-highlighting"
-else
-  warn "zsh-syntax-highlighting already installed, skipping."
-fi
-
-# ── 6. Copy dotfiles ─────────────────────────────────────
-info "Copying .zshrc..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -f "$HOME/.zshrc" ]; then
-  cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
-  warn "Backed up existing .zshrc → .zshrc.bak"
-fi
-cp "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+# ── 1. Detect Package Manager & Install Dependencies ─────────
+info "Detecting system environment and package manager..."
 
-# ── 7. Set zsh as default shell ──────────────────────────
-info "Setting zsh as default shell..."
-chsh -s zsh 2>/dev/null || warn "Could not set zsh as default (run 'chsh -s zsh' manually)"
+if command -v pkg &>/dev/null; then
+  info "Termux environment detected (using pkg)..."
+  pkg update -y
+  pkg install -y zsh starship fastfetch fzf bat eza zoxide git curl
+elif command -v apt-get &>/dev/null; then
+  info "Debian/Ubuntu/PRoot environment detected (using apt)..."
+  if [ "$(id -u)" -eq 0 ]; then
+    DEBIAN_FRONTEND=noninteractive apt-get update -y
+    DEBIAN_FRONTEND=noninteractive apt-get install -y zsh starship fastfetch fzf bat eza zoxide zsh-autosuggestions zsh-syntax-highlighting git curl fonts-jetbrains-mono
+  else
+    sudo apt-get update -y
+    sudo apt-get install -y zsh starship fastfetch fzf bat eza zoxide zsh-autosuggestions zsh-syntax-highlighting git curl fonts-jetbrains-mono
+  fi
+else
+  warn "Unknown package manager. Please ensure starship, fastfetch, zsh, fzf, bat, eza, and zoxide are installed."
+fi
+
+# ── 2. Create Destination Directories ────────────────────────
+info "Preparing configuration directories..."
+mkdir -p "$HOME/.config/fastfetch" \
+         "$HOME/.config/bat" \
+         "$HOME/.termux/bin" \
+         "$HOME/.termux/colors"
+
+# ── 3. Back Up Existing Dotfiles ─────────────────────────────
+backup_if_exists() {
+  local file="$1"
+  if [ -f "$file" ]; then
+    cp "$file" "${file}.bak"
+    warn "Backed up $(basename "$file") → $(basename "$file").bak"
+  fi
+}
+
+backup_if_exists "$HOME/.zshrc"
+backup_if_exists "$HOME/.bashrc"
+backup_if_exists "$HOME/.config/starship.toml"
+
+# ── 4. Copy Configurations ───────────────────────────────────
+info "Deploying modern dotfiles..."
+cp "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+cp "$SCRIPT_DIR/.bashrc" "$HOME/.bashrc"
+cp "$SCRIPT_DIR/config/starship.toml" "$HOME/.config/starship.toml"
+cp "$SCRIPT_DIR/config/fastfetch/config.jsonc" "$HOME/.config/fastfetch/config.jsonc"
+cp "$SCRIPT_DIR/config/bat/config" "$HOME/.config/bat/config"
+
+# ── 5. Copy Termux Helper Tools & Color Schemes ──────────────
+info "Installing color themes & theme switcher..."
+cp "$SCRIPT_DIR/termux/termux.properties" "$HOME/.termux/termux.properties" 2>/dev/null || true
+cp -r "$SCRIPT_DIR/termux/colors/"* "$HOME/.termux/colors/"
+cp -r "$SCRIPT_DIR/termux/bin/"* "$HOME/.termux/bin/"
+chmod +x "$HOME/.termux/bin/"*
+
+# Global symlink for theme switcher if root
+if [ "$(id -u)" -eq 0 ]; then
+  ln -sf "$HOME/.termux/bin/termux-theme" /usr/local/bin/termux-theme 2>/dev/null || true
+  ln -sf "$HOME/.termux/bin/termux-theme" /usr/local/bin/theme 2>/dev/null || true
+fi
+
+# Apply default Catppuccin Mocha theme
+if [ -f "$HOME/.termux/colors/catppuccin-mocha.properties" ]; then
+  cp "$HOME/.termux/colors/catppuccin-mocha.properties" "$HOME/.termux/colors.properties"
+fi
+
+# Reload Termux settings if supported
+if command -v termux-reload-settings &>/dev/null; then
+  termux-reload-settings 2>/dev/null || true
+fi
+
+# ── 6. Default Shell Setup ───────────────────────────────────
+if command -v zsh &>/dev/null; then
+  chsh -s zsh 2>/dev/null || true
+fi
 
 echo ""
-success "✅ Installation complete!"
-echo -e "${CYAN}  → Open a new Termux session or run: ${YELLOW}source ~/.zshrc${RESET}"
+echo -e "${GREEN}${BOLD}✔ Installation finished successfully!${RESET}"
+echo -e "${CYAN}  • Start a new shell or run: ${YELLOW}exec zsh${RESET}"
+echo -e "${CYAN}  • Switch themes anytime with: ${YELLOW}theme${RESET}"
+echo -e "${CYAN}  • View storage & system dashboard with: ${YELLOW}fetch${RESET}"
 echo ""

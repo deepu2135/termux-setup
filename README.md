@@ -1,54 +1,116 @@
-# 🖥️ Termux Setup — by deepu2135
+# 🚀 Enhanced Terminal Setup — by deepu2135
 
-A clean, minimal Termux shell configuration with smart autocompletion, fuzzy history search, and syntax highlighting.
+An aesthetic, ultra-fast, and modern terminal environment designed for **Termux**, **PRoot Ubuntu / Debian**, and **Linux**.
+
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/Platform-Termux%20%7C%20Linux%20%7C%20PRoot-orange.svg)
+![Theme](https://img.shields.io/badge/Theme-Catppuccin%20Mocha-magenta.svg)
+
+---
 
 ## ✨ Features
 
-| Feature | Description |
-|---|---|
-| 🔮 **Ghost-text autosuggestions** | Suggests commands as you type (press `→` to accept) |
-| 🔍 **Fuzzy history search** | Press `Ctrl+R` to fuzzy-search all past commands |
-| 🎨 **Syntax highlighting** | Commands turn green when valid, red when invalid |
-| 📁 **Tab completion menu** | Navigate completions with arrow keys |
-| 🔡 **Case-insensitive tab** | `git com` + Tab matches `git commit` |
+- ⚡ **Starship Prompt:** Fast, context-aware prompt showing User, Git branch & status (`⇡`/`⇣`/`!`/`+`), Python/Node/Rust/Java versions, and command duration timer.
+- 📊 **Fastfetch System Dashboard:** Real-time Memory, Device Storage, and accurate PRoot container footprint.
+- 🎨 **11 Designer Color Themes:** Built-in one-command switcher (`theme`) supporting Catppuccin Mocha, Tokyo Night, Dracula, Gruvbox, Nord, Rosé Pine, Kanagawa, Cyberpunk, and more.
+- 🔮 **Fish-style Syntax Highlighting & Autosuggestions:** Fast command autocompletion (`Right Arrow` or `Ctrl + Space` to accept).
+- 🔍 **Interactive FZF Integration:**
+  - `Ctrl + R`: Interactive fuzzy search through command history.
+  - `Ctrl + T`: File search with live syntax-highlighted `bat` previews.
+  - `Alt + C`: Directory search with live `eza` tree previews.
+- 📁 **Modern CLI Utilities:** `eza` (modern `ls` with icons & git status), `bat` (syntax-highlighted `cat`), `zoxide` (`z` smart directory jumping).
+- 📱 **Termux Mobile Toolbar:** Configured 2-row touch keys with swipe-up popups (`ESC`, `TAB`, `CTRL`, `ALT`, `|`, `~`, `( )`, `[ ]`, `/`, `"`).
 
-## 📦 What's Included
+---
 
-```
+## 📦 Repository Structure
+
+```text
 termux-setup/
-├── .zshrc        # Main shell config (oh-my-zsh + plugins + completion)
-└── install.sh    # One-command auto-installer
+├── install.sh                  # Universal 1-command installer
+├── .zshrc                      # Enhanced Zsh configuration
+├── .bashrc                     # Enhanced Bash configuration
+├── config/
+│   ├── starship.toml           # Starship prompt configuration
+│   ├── fastfetch/
+│   │   └── config.jsonc        # Fastfetch card dashboard
+│   └── bat/
+│       └── config              # Bat syntax theme settings
+└── termux/
+    ├── termux.properties       # Extra keys row & touch optimizations
+    ├── bin/
+    │   ├── termux-theme        # Interactive & CLI theme switcher
+    │   ├── proot-storage-info  # Accurate storage reporter
+    │   └── update-proot-cache  # Background cache updater
+    └── colors/                 # 11 color schemes (.properties)
 ```
+
+---
 
 ## 🚀 Quick Install
 
+### One-line Installation:
 ```bash
-# Clone the repo
-git clone https://github.com/deepu2135/termux-setup
+git clone https://github.com/deepu2135/termux-setup.git
 cd termux-setup
-
-# Run installer
 bash install.sh
 ```
 
-Then **open a new Termux session** — everything will be ready.
+Then start a fresh session or run:
+```bash
+exec zsh
+```
 
-## ⌨️ Keybindings
+---
 
-| Key | Action |
-|---|---|
-| `→` (Right Arrow) | Accept the current ghost suggestion |
-| `Tab` | Open completion menu |
-| `Ctrl+R` | Fuzzy search command history |
-| Arrow keys | Navigate the completion menu |
+## 🎨 Theme Switcher
+
+Switch terminal color schemes anytime using:
+```bash
+theme
+```
+
+Or switch directly:
+```bash
+theme tokyonight
+theme dracula
+theme gruvbox-dark
+theme nord
+theme rose-pine
+theme kanagawa
+theme cyberpunk
+theme catppuccin-mocha
+theme random
+```
+
+---
+
+## ⌨️ Shortcuts & Aliases
+
+| Command | Action |
+| :--- | :--- |
+| `ls`, `l`, `la` | Modern file list with icons via `eza` |
+| `ll` | Detailed list with Git status and human-readable dates |
+| `lt` / `tree` | Tree directory structure with icons |
+| `cat <file>` | Syntax-highlighted file viewing via `bat` |
+| `z <dir>` | Smart directory jump via `zoxide` |
+| `Ctrl + R` | Fuzzy history search |
+| `Ctrl + T` | Fuzzy file search with preview |
+| `fetch` | Display system & storage dashboard |
+| `extract <file>` | Universal archive extractor |
+| `mkcd <dir>` | Create directory and `cd` into it |
+| `bak <file>` | Backup file to `.bak` |
+
+---
 
 ## 🛠️ Stack
 
-- **Shell**: [Zsh](https://www.zsh.org/)
-- **Framework**: [oh-my-zsh](https://ohmyz.sh/)
-- **Suggestions**: [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
-- **Highlighting**: [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
-- **Fuzzy Search**: [fzf](https://github.com/junegunn/fzf)
+- **Shell:** [Zsh](https://www.zsh.org/) / [Bash](https://www.gnu.org/software/bash/)
+- **Prompt:** [Starship](https://starship.rs/)
+- **Fetch:** [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
+- **File Preview:** [Bat](https://github.com/sharkdp/bat) & [Eza](https://github.com/eza-community/eza)
+- **Fuzzy Finder:** [FZF](https://github.com/junegunn/fzf)
+- **Navigation:** [Zoxide](https://github.com/ajeetdsouza/zoxide)
 
 ---
 

@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# ============================================================
+#  Termux Theme Switcher — Aesthetic & Modern
+# ============================================================
+
+THEME_DIR="/root/.termux/colors"
+PRIMARY_COLOR_FILE="/root/.termux/colors.properties"
+HOST_COLOR_FILE="/data/data/com.termux/files/home/.termux/colors.properties"
+
+# ANSI Colors
+BOLD="\033[1m"
+RESET="\033[0m"
+CYAN="\033[38;5;51m"
+GREEN="\033[38;5;46m"
+YELLOW="\033[38;5;226m"
+MAGENTA="\033[38;5;201m"
+GRAY="\033[38;5;242m"
+WHITE="\033[38;5;255m"
+
+apply_theme() {
+  local theme_file="$1"
+  local theme_name="$2"
+
+  if [ ! -f "$theme_file" ]; then
+    echo -e "${YELLOW}[!] Theme file not found: $theme_file${RESET}"
+    exit 1
+  fi
+
+  mkdir -p "/root/.termux"
+  cp "$theme_file" "$PRIMARY_COLOR_FILE"
+
+  if [ -d "/data/data/com.termux/files/home/.termux" ]; then
+    cp "$theme_file" "$HOST_COLOR_FILE" 2>/dev/null || true
+  fi
+
+  if command -v termux-reload-settings &>/dev/null; then
+    timeout 0.5 termux-reload-settings 2>/dev/null || true
+  fi
+
+  echo -e "${GREEN}✔ Successfully applied theme:${RESET} ${BOLD}${CYAN}${theme_name}${RESET}"
+  echo -e "${GRAY}(Note: On Termux, restart session or run 'termux-reload-settings' to see changes live)${RESET}"
+}
+
+list_themes() {
+  echo -e "\n${BOLD}${MAGENTA}🎨 Available Color Themes:${RESET}\n"
+  local i=1
+  themes_arr=()
+  for f in "$THEME_DIR"/*.properties; do
+    [ -e "$f" ] || continue
+    name="$(basename "$f" .properties)"
+    
+    # Check active
+    if [ -f "$PRIMARY_COLOR_FILE" ] && cmp -s "$f" "$PRIMARY_COLOR_FILE"; then
+      echo -e "  ${CYAN}[$(printf '%2d' "$i")]${RESET} ${GREEN}● ${name}${RESET} ${YELLOW}(active)${RESET}"
+    else
+      echo -e "  ${CYAN}[$(printf '%2d' "$i")]${RESET}   ${name}"
+    fi
+    themes_arr+=("$name:$f")
+    ((i++))
+  done
+  echo ""
+}
+
+# Handle arguments
+if [ -n "$1" ]; then
+  if [ "$1" = "list" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ]; then
+    list_themes
+    exit 0
+  fi
+
+  if [ "$1" = "random" ] || [ "$1" = "-r" ]; then
+    themes=("$THEME_DIR"/*.properties)
+    rand_theme="${themes[RANDOM % ${#themes[@]}]}"
+    rand_name="$(basename "$rand_theme" .properties)"
+    apply_theme "$rand_theme" "$rand_name"
+    exit 0
+  fi
+
+  target_file="$THEME_DIR/$1.properties"
+  if [ -f "$target_file" ]; then
+    apply_theme "$target_file" "$1"
+    exit 0
+  else
+    echo -e "${YELLOW}[!] Theme '$1' not found. Available themes:${RESET}"
+    list_themes
+    exit 1
+  fi
+fi
+
+# Interactive menu
+list_themes
+read -p "Select theme number or name (or 'r' for random, 'q' to quit): " choice
+
+if [ "$choice" = "q" ] || [ "$choice" = "exit" ] || [ -z "$choice" ]; then
+  exit 0
+fi
+
+if [ "$choice" = "r" ] || [ "$choice" = "random" ]; then
+  themes=("$THEME_DIR"/*.properties)
+  rand_theme="${themes[RANDOM % ${#themes[@]}]}"
+  rand_name="$(basename "$rand_theme" .properties)"
+  apply_theme "$rand_theme" "$rand_name"
+  exit 0
+fi
+
+if [[ "$choice" =~ ^[0-9]+$ ]]; then
+  idx=$((choice - 1))
+  if [ $idx -ge 0 ] && [ $idx -lt ${#themes_arr[@]} ]; then
+    selected="${themes_arr[$idx]}"
+    s_name="${selected%%:*}"
+    s_file="${selected##*:}"
+    apply_theme "$s_file" "$s_name"
+  else
+    echo "Invalid index."
+  fi
+else
+  target_file="$THEME_DIR/$choice.properties"
+  if [ -f "$target_file" ]; then
+    apply_theme "$target_file" "$choice"
+  else
+    echo "Theme not found: $choice"
+  fi
+fi
