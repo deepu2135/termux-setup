@@ -234,3 +234,10 @@ if [[ -o interactive ]]; then
   fi
 fi
 (/root/.termux/bin/update-proot-cache >/dev/null 2>&1 &)
+
+# ── Tmux Session / Top Tab Management ────────────────────────
+alias tm='tmux attach -t main 2>/dev/null || tmux new-session -s main'
+alias tnew='tmux new-window -n'
+alias tab='tmux new-window -n'
+alias trename='tmux rename-window'
+alias tlist='tmux list-windows'
