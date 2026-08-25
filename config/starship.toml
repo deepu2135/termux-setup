@@ -1,5 +1,5 @@
 # ============================================================
-#  Starship Configuration — Dynamic Theme Adaptive
+#  Starship Configuration — Original Clean Catppuccin Mocha
 # ============================================================
 
 command_timeout = 2000
@@ -26,38 +26,38 @@ $status\
 $character"""
 
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
-vicmd_symbol = "[❮](bold yellow)"
+success_symbol = "[❯](bold #a6e3a1)"
+error_symbol = "[❯](bold #f38ba8)"
+vicmd_symbol = "[❮](bold #f9e2af)"
 
 [username]
-style_user = "bold cyan"
-style_root = "bold red"
+style_user = "bold #89dceb"
+style_root = "bold #f38ba8"
 format = "[$user]($style) "
 show_always = false
 
 [hostname]
 ssh_only = true
-style = "bold blue"
+style = "bold #89b4fa"
 format = "at [$hostname]($style) "
 
 [directory]
-style = "bold cyan"
+style = "bold #89dceb"
 format = "in [$path]($style)[$read_only]($read_only_style) "
 truncation_length = 3
 truncate_to_repo = true
 truncation_symbol = "…/"
 read_only = " 🔒"
-read_only_style = "bold red"
+read_only_style = "bold #f38ba8"
 home_symbol = "~"
 
 [git_branch]
 symbol = " "
-style = "bold purple"
+style = "bold #cba6f7"
 format = "on [$symbol$branch]($style) "
 
 [git_status]
-style = "bold red"
+style = "bold #f38ba8"
 format = '([\[$all_status$ahead_behind\]]($style) )'
 conflicted = "="
 ahead = "⇡${count}"
@@ -72,78 +72,44 @@ deleted = "✘${count}"
 
 [cmd_duration]
 min_time = 2_000
-style = "bold yellow"
-format = "took [$duration](bold yellow) "
+style = "bold #f9e2af"
+format = "took [$duration](bold #f9e2af) "
 
 [package]
 symbol = "pkg "
-style = "bold yellow"
+style = "bold #fab387"
 format = "[$symbol$version]($style) "
 
 [python]
 symbol = "🐍 "
-style = "bold yellow"
+style = "bold #f9e2af"
 format = '[$symbol$version]($style) '
 detect_extensions = ['py']
 detect_files = ['requirements.txt', 'pyproject.toml', 'Pipfile']
 
 [nodejs]
 symbol = "⬢ "
-style = "bold green"
+style = "bold #a6e3a1"
 format = '[$symbol$version]($style) '
-detect_extensions = ['js', 'mjs', 'cjs', 'ts']
-detect_files = ['package.json']
 
 [rust]
 symbol = "🦀 "
-style = "bold red"
+style = "bold #f38ba8"
 format = '[$symbol$version]($style) '
-detect_extensions = ['rs']
-detect_files = ['Cargo.toml']
 
 [golang]
 symbol = "🐹 "
-style = "bold cyan"
+style = "bold #89dceb"
 format = '[$symbol$version]($style) '
-detect_extensions = ['go']
-detect_files = ['go.mod']
 
 [java]
 symbol = "☕ "
-style = "bold yellow"
+style = "bold #fab387"
 format = '[$symbol$version]($style) '
-detect_extensions = ['java', 'class', 'jar', 'gradle', 'clj']
-detect_files = ['pom.xml', 'build.gradle.kts', 'build.sbt']
-
-[docker_context]
-symbol = "🐳 "
-style = "bold blue"
-format = "[$symbol$context]($style) "
 
 [status]
 disabled = false
-style = "bold red"
+style = "bold #f38ba8"
 symbol = "✗ "
 success_symbol = ""
 format = "[$symbol$status]($style) "
-
-[battery]
-full_symbol = "🔋 "
-charging_symbol = "⚡ "
-discharging_symbol = "🪫 "
-unknown_symbol = "🔋 "
-empty_symbol = "🪫 "
-
-[[battery.display]]
-threshold = 30
-style = "bold yellow"
-
-[[battery.display]]
-threshold = 15
-style = "bold red"
-
-[jobs]
-symbol = "✦ "
-style = "bold blue"
-number_threshold = 1
-format = "[$symbol$number]($style) "
