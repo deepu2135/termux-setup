@@ -53,7 +53,8 @@ info "Preparing configuration directories..."
 mkdir -p "$HOME/.config/fastfetch" \
          "$HOME/.config/bat" \
          "$HOME/.termux/bin" \
-         "$HOME/.termux/colors"
+         "$HOME/.termux/colors" \
+         "$HOME/.termux/themes"
 
 # ── 3. Back Up Existing Dotfiles ─────────────────────────────
 backup_if_exists() {
@@ -78,10 +79,12 @@ cp "$SCRIPT_DIR/config/bat/config" "$HOME/.config/bat/config"
 
 # ── 5. Copy Termux Helper Tools & Color Schemes ──────────────
 info "Installing color themes & theme switcher..."
-cp "$SCRIPT_DIR/termux/termux.properties" "$HOME/.termux/termux.properties" 2>/dev/null || true
-cp -r "$SCRIPT_DIR/termux/colors/"* "$HOME/.termux/colors/"
-cp -r "$SCRIPT_DIR/termux/bin/"* "$HOME/.termux/bin/"
-chmod +x "$HOME/.termux/bin/"*
+[ -f "$SCRIPT_DIR/termux/termux.properties" ] && cp "$SCRIPT_DIR/termux/termux.properties" "$HOME/.termux/termux.properties" 2>/dev/null || true
+[ -f "$SCRIPT_DIR/termux/banner.sh" ] && cp "$SCRIPT_DIR/termux/banner.sh" "$HOME/.termux/banner.sh" && chmod +x "$HOME/.termux/banner.sh" 2>/dev/null || true
+[ -d "$SCRIPT_DIR/termux/colors" ] && cp -r "$SCRIPT_DIR/termux/colors/"* "$HOME/.termux/colors/" 2>/dev/null || true
+[ -d "$SCRIPT_DIR/termux/themes" ] && cp -r "$SCRIPT_DIR/termux/themes/"* "$HOME/.termux/themes/" 2>/dev/null || true
+[ -d "$SCRIPT_DIR/termux/bin" ] && cp -r "$SCRIPT_DIR/termux/bin/"* "$HOME/.termux/bin/" 2>/dev/null || true
+chmod +x "$HOME/.termux/bin/"* 2>/dev/null || true
 
 # Global symlink for theme switcher if root
 if [ "$(id -u)" -eq 0 ]; then

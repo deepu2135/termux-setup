@@ -1,6 +1,6 @@
 [ -x "$HOME/.termux/bin/apply-active-palette" ] && "$HOME/.termux/bin/apply-active-palette" 2>/dev/null
 # ============================================================
-#  Enhanced Modern Zsh Configuration
+#  Enhanced Modern Zsh Configuration — Synced for Termux & PRoot
 # ============================================================
 
 # ── 1. Environment & Colors ──────────────────────────────────
@@ -15,7 +15,7 @@ export VISUAL="nano"
 export BAT_THEME="Catppuccin Mocha"
 
 # Path Configuration
-export PATH="/root/.local/bin:/root/.termux/bin:$HOME/.local/bin:$HOME/.termux/bin:$PATH"
+export PATH="/data/data/com.termux/files/usr/bin:/data/data/com.termux/files/home/.termux/bin:/data/data/com.termux/files/home/.local/bin:/usr/local/bin:/root/.local/bin:/root/.termux/bin:$HOME/.local/bin:$HOME/.termux/bin:$PATH"
 
 # ── 2. Tab Completion & Zstyle Styling ───────────────────────
 autoload -Uz compinit
@@ -68,32 +68,55 @@ bindkey '^[[3;5~' kill-word            # Ctrl + Delete
 
 # ── 5. Zsh Plugins ───────────────────────────────────────────
 # Autosuggestions
-if [ -f "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-  source "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6c7086,bold"
-  ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=30
-  ZSH_AUTOSUGGEST_USE_ASYNC=1
-  bindkey '^[[C' autosuggest-accept     # Right arrow accepts suggestion
-  bindkey '^@' autosuggest-accept       # Ctrl + Space accepts suggestion
-fi
+for _as_path in \
+  "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "/data/data/com.termux/files/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "$HOME/.oh-my-zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "/data/data/com.termux/files/home/.oh-my-zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"; do
+  if [ -f "$_as_path" ]; then
+    source "$_as_path" 2>/dev/null || true
+    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6c7086,bold"
+    ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=30
+    ZSH_AUTOSUGGEST_USE_ASYNC=1
+    bindkey '^[[C' autosuggest-accept 2>/dev/null || true
+    bindkey '^@' autosuggest-accept 2>/dev/null || true
+    break
+  fi
+done
 
-# Syntax Highlighting (Must be loaded after autosuggestions)
-if [ -f "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-  source "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-  ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets cursor)
-  typeset -A ZSH_HIGHLIGHT_STYLES
-  ZSH_HIGHLIGHT_STYLES[command]='fg=#a6e3a1,bold'
-  ZSH_HIGHLIGHT_STYLES[alias]='fg=#89dceb,bold'
-  ZSH_HIGHLIGHT_STYLES[builtin]='fg=#89b4fa,bold'
-  ZSH_HIGHLIGHT_STYLES[function]='fg=#cba6f7,bold'
-  ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=#fab387'
-  ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=#fab387'
-  ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#f9e2af'
-  ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#f9e2af'
-  ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5,underline'
-  ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#f38ba8,bold'
-fi
+# Syntax Highlighting (Configured and loaded)
+typeset -gA ZSH_HIGHLIGHT_STYLES 2>/dev/null || true
+typeset -ga ZSH_HIGHLIGHT_HIGHLIGHTERS 2>/dev/null || true
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets cursor)
+
+ZSH_HIGHLIGHT_STYLES[command]='fg=#a6e3a1,bold'
+ZSH_HIGHLIGHT_STYLES[alias]='fg=#89dceb,bold'
+ZSH_HIGHLIGHT_STYLES[builtin]='fg=#89b4fa,bold'
+ZSH_HIGHLIGHT_STYLES[function]='fg=#cba6f7,bold'
+ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=#fab387'
+ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=#fab387'
+ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#f9e2af'
+ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#f9e2af'
+ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5,underline'
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#f38ba8,bold'
+
+for _sh_path in \
+  "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/data/data/com.termux/files/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "$HOME/.oh-my-zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/data/data/com.termux/files/home/.oh-my-zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"; do
+  if [ -f "$_sh_path" ]; then
+    _sh_dir="${_sh_path:h}"
+    export ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR="$_sh_dir/highlighters"
+    source "$_sh_path" 2>/dev/null || true
+    for _hl in main brackets cursor; do
+      _hl_file="$ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR/$_hl/$_hl-highlighter.zsh"
+      [ -f "$_hl_file" ] && . "$_hl_file" 2>/dev/null || true
+    done
+    break
+  fi
+done
 
 # ── 6. FZF Fuzzy Finder Integration ──────────────────────────
 if command -v fzf &>/dev/null; then
@@ -178,10 +201,9 @@ alias du='du -h -d 1'
 alias free='free -h'
 
 # Antigravity CLI
-alias agy="/root/.local/bin/agy"
+[ -x "/root/.local/bin/agy" ] && alias agy="/root/.local/bin/agy"
 
 # ── 10. Helpful Functions ────────────────────────────────────
-# Extract any archive automatically
 extract() {
   if [ -f "$1" ]; then
     case "$1" in
@@ -205,22 +227,18 @@ extract() {
   fi
 }
 
-# Create a directory and jump into it
 mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
-# Quick command / cheatsheet lookup
 cheat() {
   curl -s "cheat.sh/${1}"
 }
 
-# Quick weather
 weather() {
   curl -s "wttr.in/${1:-}?m"
 }
 
-# Backup a file with .bak extension
 bak() {
   cp -r "$1" "${1}.bak" && echo "✔ Backed up $1 → ${1}.bak"
 }
@@ -233,5 +251,3 @@ if [[ -o interactive ]]; then
     bash "$HOME/.termux/banner.sh"
   fi
 fi
-(/root/.termux/bin/update-proot-cache >/dev/null 2>&1 &)
-

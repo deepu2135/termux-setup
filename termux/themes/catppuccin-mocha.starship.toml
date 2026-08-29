@@ -1,0 +1,109 @@
+command_timeout = 2000
+add_newline = true
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$package\
+$python\
+$nodejs\
+$rust\
+$golang\
+$java\
+$docker_context\
+$cmd_duration\
+$jobs\
+$battery\
+$line_break\
+$status\
+$character"""
+
+[character]
+success_symbol = "[❯](bold #a6e3a1)"
+error_symbol = "[❯](bold #f38ba8)"
+vicmd_symbol = "[❮](bold #f9e2af)"
+
+[username]
+style_user = "bold #89dceb"
+style_root = "bold #f38ba8"
+format = "[$user]($style) "
+show_always = false
+
+[hostname]
+ssh_only = true
+style = "bold #89b4fa"
+format = "at [$hostname]($style) "
+
+[directory]
+style = "bold #89dceb"
+format = "in [$path]($style)[$read_only]($read_only_style) "
+truncation_length = 3
+truncate_to_repo = true
+truncation_symbol = "…/"
+read_only = " 🔒"
+read_only_style = "bold #f38ba8"
+home_symbol = "~"
+
+[git_branch]
+symbol = " "
+style = "bold #cba6f7"
+format = "on [$symbol$branch]($style) "
+
+[git_status]
+style = "bold #f38ba8"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?${count}"
+stashed = "📦"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[cmd_duration]
+min_time = 2_000
+style = "bold #f9e2af"
+format = "took [$duration](bold #f9e2af) "
+
+[package]
+symbol = "pkg "
+style = "bold #fab387"
+format = "[$symbol$version]($style) "
+
+[python]
+symbol = "🐍 "
+style = "bold #f9e2af"
+format = '[$symbol$version]($style) '
+
+[nodejs]
+symbol = "⬢ "
+style = "bold #a6e3a1"
+format = '[$symbol$version]($style) '
+
+[rust]
+symbol = "🦀 "
+style = "bold #f38ba8"
+format = '[$symbol$version]($style) '
+
+[golang]
+symbol = "🐹 "
+style = "bold #89dceb"
+format = '[$symbol$version]($style) '
+
+[java]
+symbol = "☕ "
+style = "bold #fab387"
+format = '[$symbol$version]($style) '
+
+[status]
+disabled = false
+style = "bold #f38ba8"
+symbol = "✗ "
+success_symbol = ""
+format = "[$symbol$status]($style) "

@@ -20,10 +20,10 @@ shopt -s checkwinsize
 export BAT_THEME="Catppuccin Mocha"
 export TERM="${TERM:-xterm-256color}"
 export COLORTERM="${COLORTERM:-truecolor}"
-export PATH="/usr/local/bin:/root/.local/bin:/root/.termux/bin:$HOME/.local/bin:$HOME/.termux/bin:$PATH"
+export PATH="/data/data/com.termux/files/usr/bin:/data/data/com.termux/files/home/.termux/bin:/data/data/com.termux/files/home/.local/bin:/usr/local/bin:/root/.local/bin:/root/.termux/bin:$HOME/.local/bin:$HOME/.termux/bin:$PATH"
 
 # Antigravity CLI
-alias agy="/root/.local/bin/agy"
+[ -x "/root/.local/bin/agy" ] && alias agy="/root/.local/bin/agy"
 
 # ── Modern Aliases ───────────────────────────────────────────
 if command -v eza &>/dev/null; then
@@ -112,33 +112,13 @@ bak() {
   cp -r "$1" "${1}.bak" && echo "✔ Backed up $1 → ${1}.bak"
 }
 
-# ── FZF Integration ──────────────────────────────────────────
-if command -v fzf &>/dev/null; then
-  export FZF_DEFAULT_OPTS=" \
-  --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
-  --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
-  --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
-  --color=selected-bg:#45475a \
-  --multi --height=45% --layout=reverse --border=rounded --info=inline-right"
-  eval "$(fzf --bash 2>/dev/null)" || true
-fi
-
-# ── Zoxide (Smart cd) ────────────────────────────────────────
-if command -v zoxide &>/dev/null; then
-  eval "$(zoxide init bash)"
-  alias cd="z"
-fi
-
-# ── Starship Prompt ──────────────────────────────────────────
+# Starship Prompt in Bash
 if command -v starship &>/dev/null; then
   eval "$(starship init bash)"
 fi
 
-# ── Welcome Banner (only when staying in Bash) ───────────────
-if [[ "$-" == *i* ]] || [ -t 1 ]; then
+if [[ -o interactive ]]; then
   if command -v fastfetch &>/dev/null; then
     fastfetch
   fi
 fi
-(/root/.termux/bin/update-proot-cache >/dev/null 2>&1 &)
-

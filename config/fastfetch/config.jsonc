@@ -31,15 +31,9 @@
     },
     {
       "type": "command",
-      "key": "  󰉉 Device Storage",
+      "key": "  󰉉 Storage",
       "keyColor": "yellow",
       "text": "df -h /sdcard 2>/dev/null | awk 'NR==2 {print $3 \" / \" $2 \" (\" $4 \" free)\"}'"
-    },
-    {
-      "type": "command",
-      "key": "   PRoot Storage",
-      "keyColor": "blue",
-      "text": "cat /tmp/.proot_storage_cache 2>/dev/null || echo '1.9 GiB (Home) | 4.4 GiB (Total)'"
     },
     {
       "type": "custom",

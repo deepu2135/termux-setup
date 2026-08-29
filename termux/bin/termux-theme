@@ -1,12 +1,29 @@
 #!/usr/bin/env bash
 # ============================================================
-#  Full-Stack Theme Switcher — Prompt, Window, & Tools
+#  Full-Stack Theme Switcher — Synchronized across Termux & PRoot
 # ============================================================
 
-THEME_DIR="/root/.termux/colors"
-STARSHIP_THEME_DIR="/root/.termux/themes"
-PRIMARY_COLOR_FILE="/root/.termux/colors.properties"
-HOST_COLOR_FILE="/data/data/com.termux/files/home/.termux/colors.properties"
+# Auto-detect Theme Directory
+if [ -d "/data/data/com.termux/files/home/.termux/colors" ]; then
+  THEME_DIR="/data/data/com.termux/files/home/.termux/colors"
+elif [ -d "$HOME/.termux/colors" ]; then
+  THEME_DIR="$HOME/.termux/colors"
+elif [ -d "/root/.termux/colors" ]; then
+  THEME_DIR="/root/.termux/colors"
+else
+  THEME_DIR="$HOME/.termux/colors"
+fi
+
+# Auto-detect Starship Theme Directory
+if [ -d "/data/data/com.termux/files/home/.termux/themes" ]; then
+  STARSHIP_THEME_DIR="/data/data/com.termux/files/home/.termux/themes"
+elif [ -d "$HOME/.termux/themes" ]; then
+  STARSHIP_THEME_DIR="$HOME/.termux/themes"
+elif [ -d "/root/.termux/themes" ]; then
+  STARSHIP_THEME_DIR="/root/.termux/themes"
+else
+  STARSHIP_THEME_DIR="$HOME/.termux/themes"
+fi
 
 BOLD="\033[1m"
 RESET="\033[0m"
@@ -14,6 +31,18 @@ CYAN="\033[38;5;51m"
 GREEN="\033[38;5;46m"
 YELLOW="\033[38;5;226m"
 MAGENTA="\033[38;5;201m"
+
+resolve_theme_name() {
+  local input="$1"
+  case "$input" in
+    default|original|termux|original-termux|reset)
+      echo "termux-default"
+      ;;
+    *)
+      echo "$input"
+      ;;
+  esac
+}
 
 apply_theme() {
   local theme_file="$1"
@@ -24,52 +53,69 @@ apply_theme() {
     exit 1
   fi
 
-  # 1. Update Starship Prompt to match theme palette
-  if [ -f "$STARSHIP_THEME_DIR/$theme_name.starship.toml" ]; then
-    cp "$STARSHIP_THEME_DIR/$theme_name.starship.toml" "$HOME/.config/starship.toml"
-    cp "$STARSHIP_THEME_DIR/$theme_name.starship.toml" "/home/ubuntu/.config/starship.toml" 2>/dev/null || true
+  # 1. Update Starship Prompt to match theme palette (if present)
+  local starship_src="$STARSHIP_THEME_DIR/$theme_name.starship.toml"
+  if [ -f "$starship_src" ]; then
+    mkdir -p "/data/data/com.termux/files/home/.config" "$HOME/.config" "/root/.config" 2>/dev/null || true
+    cp -f "$starship_src" "/data/data/com.termux/files/home/.config/starship.toml" 2>/dev/null || true
+    [ -d "$HOME/.config" ] && cp -f "$starship_src" "$HOME/.config/starship.toml" 2>/dev/null || true
+    [ -d "/root/.config" ] && cp -f "$starship_src" "/root/.config/starship.toml" 2>/dev/null || true
+    [ -d "/home/ubuntu/.config" ] && cp -f "$starship_src" "/home/ubuntu/.config/starship.toml" 2>/dev/null || true
   fi
 
-  # 2. Persist colors.properties to both container and Termux host
-  mkdir -p "$HOME/.termux" "/root/.termux"
-  cp -f "$theme_file" "$PRIMARY_COLOR_FILE"
-
-  if [ -d "/data/data/com.termux/files/home/.termux" ]; then
-    cp -f "$theme_file" "$HOST_COLOR_FILE" 2>/dev/null || true
+  # 2. Persist colors.properties to master Termux and PRoot paths
+  mkdir -p "/data/data/com.termux/files/home/.termux" "$HOME/.termux" 2>/dev/null || true
+  cp -f "$theme_file" "/data/data/com.termux/files/home/.termux/colors.properties" 2>/dev/null || true
+  if [ -f "$HOME/.termux/colors.properties" ] && [ ! -L "$HOME/.termux/colors.properties" ]; then
+    cp -f "$theme_file" "$HOME/.termux/colors.properties" 2>/dev/null || true
+  fi
+  if [ -f "/root/.termux/colors.properties" ] && [ ! -L "/root/.termux/colors.properties" ]; then
+    cp -f "$theme_file" "/root/.termux/colors.properties" 2>/dev/null || true
   fi
 
-  # 3. Emit Live OSC Terminal Escape Codes
-  bg=$(grep "^background=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
-  fg=$(grep "^foreground=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
-  cur=$(grep "^cursor=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+  # 3. Emit Live OSC Terminal Escape Codes (Instantly updates active terminal)
+  local bg fg cur
+  bg=$(grep "^background=" "$theme_file" | head -n 1 | cut -d= -f2 | tr -d ' \r\n')
+  fg=$(grep "^foreground=" "$theme_file" | head -n 1 | cut -d= -f2 | tr -d ' \r\n')
+  cur=$(grep "^cursor=" "$theme_file" | head -n 1 | cut -d= -f2 | tr -d ' \r\n')
 
   [ -n "$fg" ]  && printf "\033]10;%s\007" "$fg"
   [ -n "$bg" ]  && printf "\033]11;%s\007" "$bg"
   [ -n "$cur" ] && printf "\033]12;%s\007" "$cur"
 
   for i in {0..15}; do
-    c=$(grep "^color$i=" "$theme_file" | cut -d= -f2 | tr -d ' \r\n')
+    local c
+    c=$(grep "^color$i=" "$theme_file" | head -n 1 | cut -d= -f2 | tr -d ' \r\n')
     [ -n "$c" ] && printf "\033]4;%d;%s\007" "$i" "$c"
   done
 
-  # 4. Trigger Android Broadcast
-  if [ -x /system/bin/am ]; then
-    /system/bin/am broadcast --user 0 -a "com.termux.app.reload_style" "com.termux" >/dev/null 2>&1 || true
-  fi
+  # 4. Trigger Termux Android App Styling Reload in background
+  (
+    if command -v termux-reload-settings &>/dev/null; then
+      termux-reload-settings >/dev/null 2>&1 || true
+    elif [ -x /data/data/com.termux/files/usr/bin/termux-reload-settings ]; then
+      /data/data/com.termux/files/usr/bin/termux-reload-settings >/dev/null 2>&1 || true
+    elif [ -x /system/bin/am ]; then
+      /system/bin/am broadcast --user 0 -a "com.termux.app.reload_style" "com.termux" >/dev/null 2>&1 || true
+    fi
+  ) >/dev/null 2>&1 &
 
   echo -e "${GREEN}✔ Applied theme:${RESET} ${BOLD}${CYAN}${theme_name}${RESET}"
-  echo -e "${YELLOW}  (Prompt colors, system palette, and terminal style updated!)${RESET}"
+  echo -e "${YELLOW}  (Background color & terminal palette synchronized across Termux & PRoot!)${RESET}"
 }
 
 list_themes() {
   echo -e "\n${BOLD}${MAGENTA}🎨 Available Color Themes:${RESET}\n"
   local i=1
   themes_arr=()
+  local cur_color_file="/data/data/com.termux/files/home/.termux/colors.properties"
+  [ ! -f "$cur_color_file" ] && cur_color_file="$HOME/.termux/colors.properties"
+
   for f in "$THEME_DIR"/*.properties; do
     [ -e "$f" ] || continue
-    name="$(basename "$f" .properties)"
+    local name="$(basename "$f" .properties)"
     
-    if [ -f "$PRIMARY_COLOR_FILE" ] && cmp -s "$f" "$PRIMARY_COLOR_FILE"; then
+    if [ -f "$cur_color_file" ] && cmp -s "$f" "$cur_color_file"; then
       echo -e "  ${CYAN}[$(printf '%2d' "$i")]${RESET} ${GREEN}● ${name}${RESET} ${YELLOW}(active)${RESET}"
     else
       echo -e "  ${CYAN}[$(printf '%2d' "$i")]${RESET}   ${name}"
@@ -94,9 +140,10 @@ if [ -n "$1" ]; then
     exit 0
   fi
 
-  target_file="$THEME_DIR/$1.properties"
+  resolved_name="$(resolve_theme_name "$1")"
+  target_file="$THEME_DIR/$resolved_name.properties"
   if [ -f "$target_file" ]; then
-    apply_theme "$target_file" "$1"
+    apply_theme "$target_file" "$resolved_name"
     exit 0
   else
     echo -e "${YELLOW}[!] Theme '$1' not found. Available themes:${RESET}"
@@ -131,9 +178,10 @@ if [[ "$choice" =~ ^[0-9]+$ ]]; then
     echo "Invalid index."
   fi
 else
-  target_file="$THEME_DIR/$choice.properties"
+  resolved_choice="$(resolve_theme_name "$choice")"
+  target_file="$THEME_DIR/$resolved_choice.properties"
   if [ -f "$target_file" ]; then
-    apply_theme "$target_file" "$choice"
+    apply_theme "$target_file" "$resolved_choice"
   else
     echo "Theme not found: $choice"
   fi

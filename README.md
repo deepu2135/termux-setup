@@ -12,14 +12,14 @@ An aesthetic, ultra-fast, and modern terminal environment designed for **Termux*
 
 - ⚡ **Starship Prompt:** Fast, context-aware prompt showing User, Git branch & status (`⇡`/`⇣`/`!`/`+`), Python/Node/Rust/Java versions, and command duration timer.
 - 📊 **Fastfetch System Dashboard:** Real-time Memory, Device Storage, and accurate PRoot container footprint.
-- 🎨 **11 Designer Color Themes:** Built-in one-command switcher (`theme`) supporting Catppuccin Mocha, Tokyo Night, Dracula, Gruvbox, Nord, Rosé Pine, Kanagawa, Cyberpunk, and more.
+- 🎨 **12 Designer Color Themes & Starship Presets:** Built-in one-command switcher (`theme`) supporting Catppuccin Mocha, Catppuccin Latte, Tokyo Night, Dracula, Gruvbox Dark, Nord, Rosé Pine, Kanagawa, Cyberpunk, One Dark, Hacker Green, and Termux Default with instant OSC terminal palette repaint.
 - 🔮 **Fish-style Syntax Highlighting & Autosuggestions:** Fast command autocompletion (`Right Arrow` or `Ctrl + Space` to accept).
 - 🔍 **Interactive FZF Integration:**
   - `Ctrl + R`: Interactive fuzzy search through command history.
   - `Ctrl + T`: File search with live syntax-highlighted `bat` previews.
   - `Alt + C`: Directory search with live `eza` tree previews.
 - 📁 **Modern CLI Utilities:** `eza` (modern `ls` with icons & git status), `bat` (syntax-highlighted `cat`), `zoxide` (`z` smart directory jumping).
-- 📱 **Termux Mobile Toolbar:** Configured 2-row touch keys with swipe-up popups (`ESC`, `TAB`, `CTRL`, `ALT`, `|`, `~`, `( )`, `[ ]`, `/`, `"`).
+- 📱 **Welcome Dashboard & Status Banner:** Beautiful ASCII system status banner and Fastfetch card.
 
 ---
 
@@ -37,12 +37,14 @@ termux-setup/
 │   └── bat/
 │       └── config              # Bat syntax theme settings
 └── termux/
-    ├── termux.properties       # Extra keys row & touch optimizations
+    ├── banner.sh               # Welcome banner & system status
     ├── bin/
     │   ├── termux-theme        # Interactive & CLI theme switcher
+    │   ├── apply-active-palette# OSC live palette synchronizer
     │   ├── proot-storage-info  # Accurate storage reporter
     │   └── update-proot-cache  # Background cache updater
-    └── colors/                 # 11 color schemes (.properties)
+    ├── colors/                 # 12 color schemes (.properties)
+    └── themes/                 # Starship prompt themes (.starship.toml)
 ```
 
 ---
